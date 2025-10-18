@@ -285,10 +285,25 @@ def test_given_negative_start_or_endpoint_then_we_fail(start, end):
         create_recognizer_result("entity", 0, start, end)
 
 from unittest import mock
-@mock.patch.object(RecognizerResult, "logger")
-def test_logger(mock_logger):
+def test_logger(mocker):
     # replace the following line of `pass` with your test implementation
-    pass
+    mock_logger = mocker.patch("presidio_anonymizer.entities.engine.recognizer_result.RecognizerResult.logger")
+
+    entity_type = "PERSON"
+    score = 0.85
+    start = 5
+    end = 15
+    result = create_recognizer_result(entity_type, score, start, end)
+
+    mock_logger.info.assert_called_once()
+
+    log_message = mock_logger.info.call_args[0][0]
+
+    assert entity_type in log_message
+    assert str(start) in log_message
+    assert str(end) in log_message
+    assert f"{score:.2f}" in log_message
+
 
 def create_recognizer_result(entity_type: str, score: float, start: int, end: int):
     data = {"entity_type": entity_type, "score": score, "start": start, "end": end}

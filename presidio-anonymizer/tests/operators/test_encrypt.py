@@ -46,11 +46,32 @@ def test_given_verifying_an_invalid_length_key_then_ipe_raised():
     ):
         Encrypt().validate(params={"key": "key"})
 
-@mock.patch.object(AESCipher, "encrypt") # hint: replace encrypt with the method that you want to mock
-def test_given_verifying_an_invalid_length_bytes_key_then_ipe_raised(mock_encrypt): # hint: replace mock_encrypt with a proper name for your mocker
+@mock.patch.object(AESCipher, "is_valid_key_size") # hint: replace encrypt with the method that you want to mock
+def test_given_verifying_an_invalid_length_bytes_key_then_ipe_raised(mock_validate): # hint: replace mock_encrypt with a proper name for your mocker
     # Here: add setup for mocking
+    mock_validate.return_value = False
+
     with pytest.raises(
         InvalidParamError,
         match="Invalid input, key must be of length 128, 192 or 256 bits",
     ):
         Encrypt().validate(params={"key": b'1111111111111111'})
+
+def test_operator_names():
+    assert Encrypt().operator_name() == "encrypt"
+
+def test_operator_type():
+    assert str(Encrypt().operator_type()) == "OperatorType.Anonymize"
+
+@pytest.mark.parametrize("key", [
+    "M" * 16,  # 128-bit string
+    "M" * 24,  # 192-bit string
+    "M" * 32,  # 256-bit string
+    b"M" * 16, # 128-bit bytes
+    b"M" * 24, # 192-bit bytes
+    b"M" * 32, # 256-bit bytes
+])
+def test_valid_keys(key):
+    Encrypt().validate(params={"key": key})
+
+
